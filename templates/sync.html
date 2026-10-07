@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block title %}Sincronización{% endblock %}
+{% block content %}
+<div class="head"><h1>Sincronización TOTVS</h1><button id="genBtn" class="btn btn-primary" disabled>Generar CSV</button></div>
+<p class="muted">Seleccioná los movimientos, descargá el CSV y, una vez cargado en TOTVS, confirmá para marcarlos como PROCESADOS. El historial no se elimina.</p>
+<div class="card"><div class="tbl"><table><thead><tr><th><input type="checkbox" id="all"></th><th>Fecha</th><th>Tipo</th><th>Código</th><th>Cant.</th><th>Depósito</th><th>Lote</th><th>Usuario</th><th>Estado</th></tr></thead><tbody id="body"></tbody></table></div></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/sync.js') }}"></script>{% endblock %}

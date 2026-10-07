@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}Usuarios{% endblock %}
+{% block content %}
+<div class="head"><h1>Usuarios</h1><button id="newBtn" class="btn btn-primary">+ Nuevo usuario</button></div>
+<div class="card"><div class="tbl"><table><thead><tr><th>Nombre</th><th>Usuario / email</th><th>Rol</th><th>Estado</th><th>Alta</th><th></th></tr></thead><tbody id="body"></tbody></table></div></div>
+<dialog id="dlg"><form id="uForm" method="dialog">
+  <h2>Nuevo usuario (operador)</h2>
+  <label>Nombre*<input name="name" required></label>
+  <label>Usuario / email*<input name="email" required autocomplete="off"></label>
+  <label>Contraseña* (mín. 8)<input name="password" type="password" minlength="8" required autocomplete="new-password"></label>
+  <div id="uMsg" class="msg"></div>
+  <div class="actions"><button type="button" class="btn btn-ghost" id="cancel">Cancelar</button><button class="btn btn-primary">Crear</button></div>
+</form></dialog>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/users.js') }}"></script>{% endblock %}

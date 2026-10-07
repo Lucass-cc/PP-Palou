@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<section class="kpis">
+  <div class="card kpi"><small>Productos activos</small><b id="kActive">–</b></div>
+  <div class="card kpi alert"><small>Bajo punto de reposición</small><b id="kLow">–</b></div>
+  <div class="card kpi pending"><small>Pendientes TOTVS</small><b id="kPending">–</b></div>
+</section>
+<section class="grid2">
+  <div class="card"><h2>Stock bajo</h2><div class="tbl"><table><thead><tr><th>Código</th><th>Descripción</th><th>Depósito</th><th>Cant.</th><th>Reposición</th></tr></thead><tbody id="lowBody"></tbody></table></div></div>
+  <div class="card"><h2>Movimientos recientes</h2><div class="tbl"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Cant.</th><th>Sync</th></tr></thead><tbody id="recBody"></tbody></table></div></div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>{% endblock %}

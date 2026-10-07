@@ -1,0 +1,34 @@
+{% extends "base.html" %}{% block title %}Stock{% endblock %}
+{% block content %}
+<div class="head"><h1>Stock</h1><button id="newBtn" class="btn btn-primary">+ Nuevo producto</button></div>
+<div class="card filters">
+  <input id="fq" placeholder="Buscar código o descripción">
+  <select id="fgroup"><option value="">Todos los grupos</option></select>
+  <select id="fsup"><option value="">Todos los proveedores</option></select>
+  <select id="fwh"><option value="">Todos los depósitos</option></select>
+  <label class="chk"><input type="checkbox" id="flow"> Solo stock bajo</label>
+</div>
+<div class="card"><div class="tbl"><table><thead><tr><th>Código</th><th>Descripción</th><th>Tipo</th><th>Depósito</th><th>Cantidad</th><th>Reposición</th><th>Lote</th><th>Últ. control</th><th>Observación</th><th></th></tr></thead><tbody id="body"></tbody></table></div></div>
+
+<dialog id="dlg"><form id="pForm" method="dialog">
+  <h2>Nuevo producto</h2>
+  <div class="cols">
+    <label>Código*<input name="code" required maxlength="40"></label>
+    <label>Unidad*<input name="unit" required maxlength="20" list="dUnits"></label>
+    <label class="span">Descripción*<input name="description" required maxlength="255"></label>
+    <label>Depósito*<select name="warehouse_id" id="pWh" required></select></label>
+    <label>Tipo*<input name="type" required list="dTypes"></label>
+    <label>Grupo*<input name="group" required list="dGroups"></label>
+    <label>Cantidad inicial<input name="quantity" type="number" step="any" min="0" value="0"></label>
+    <label>Punto de reposición*<input name="reorder_point" type="number" step="any" min="0" required></label>
+    <label>Lote<input name="lot" maxlength="60"></label>
+    <label>Proveedor estándar<input name="standard_supplier" list="dSups"></label>
+    <label class="chk span"><input type="checkbox" name="lot_required"> Requiere lote en cada movimiento</label>
+    <label class="span">Observación<textarea name="observation" rows="2"></textarea></label>
+  </div>
+  <datalist id="dUnits"></datalist><datalist id="dTypes"></datalist><datalist id="dGroups"></datalist><datalist id="dSups"></datalist>
+  <div id="pMsg" class="msg"></div>
+  <div class="actions"><button type="button" class="btn btn-ghost" id="cancel">Cancelar</button><button class="btn btn-primary">Guardar</button></div>
+</form></dialog>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/stock.js') }}"></script>{% endblock %}

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<title>PALOU — {% block title %}{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head><body>
+<header class="topbar">
+  <button id="menuBtn" class="menu-btn" aria-label="Menú">☰</button>
+  <div class="brand">PALOU <span>CONTROL DE STOCK</span></div>
+  <div class="who"><span>{{ user.name }} · {{ user.role }}</span><button id="logoutBtn" class="btn btn-light">Salir</button></div>
+</header>
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    {% for key, href, label in [('dashboard','/dashboard','Dashboard'),('movement','/movement','Alta / Baja'),('stock','/stock','Stock'),('sync','/sync','Sincronización')] %}
+    <a href="{{ href }}" class="{{ 'active' if page == key }}">{{ label }}</a>{% endfor %}
+    {% if user.role == 'ADMIN' %}<a href="/users" class="{{ 'active' if page == 'users' }}">Usuarios</a>{% endif %}
+  </nav>
+  <main class="main">{% block content %}{% endblock %}</main>
+</div>
+<div id="toasts"></div>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body></html>

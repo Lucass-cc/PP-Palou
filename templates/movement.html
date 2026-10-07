@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% block title %}Alta / Baja{% endblock %}
+{% block content %}
+<h1>Alta / Baja de stock</h1>
+<section class="grid2">
+  <div class="card">
+    <div class="seg"><button type="button" class="on" data-t="IN">Alta (entrada)</button><button type="button" data-t="OUT">Baja (salida)</button></div>
+    <form id="mvForm">
+      <label>Buscar producto<input id="pq" placeholder="Código o descripción" autocomplete="off"></label>
+      <label>Producto<select name="product_id" required></select></label>
+      <label>Depósito<select name="warehouse_id" required></select></label>
+      <div id="avail" class="muted"></div>
+      <label>Cantidad<input name="quantity" type="number" step="any" min="0" required></label>
+      <label>Lote (opcional)<input name="lot" maxlength="60"></label>
+      <label>Observación (opcional)<textarea name="observation" rows="2"></textarea></label>
+      <div id="msg" class="msg"></div>
+      <button class="btn btn-primary block" id="submitBtn">Registrar alta</button>
+    </form>
+  </div>
+  <div class="card"><h2>Últimos movimientos</h2><div class="tbl"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Cant.</th><th>Sync</th></tr></thead><tbody id="recBody"></tbody></table></div></div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/movement.js') }}"></script>{% endblock %}

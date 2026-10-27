@@ -1,0 +1,55 @@
+{% extends "base.html" %}{% block title %}Importar datos{% endblock %}
+{% block content %}
+<div class="head"><div class="ph" style="margin:0"><small class="eyebrow">DATOS</small><h1>Importar datos</h1><p>Cargá información desde archivos Excel (.xlsx). Seguí el orden de los pasos.</p></div></div>
+
+{% macro picker(opt_label, hint='Sin tildar, solo se suben las filas nuevas y las que ya existen no se tocan.') %}
+<div class="imp-opt">
+  <label class="chk"><input type="checkbox" class="imp-upd"> {{ opt_label }}</label>
+  <small>{{ hint }}</small>
+</div>
+<div class="dz">
+  <div class="dz-empty">
+    <span class="ibox"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg></span>
+    <div class="dz-txt"><b>Arrastrá el archivo acá</b><small>o elegilo desde tu computadora · formato .xlsx</small></div>
+    <label class="btn btn-ghost btn-lg imp-pick">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>Elegir archivo
+      <input type="file" accept=".xlsx" class="imp-file"></label>
+  </div>
+  <div class="dz-file" hidden>
+    <span class="ibox"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></span>
+    <div class="dz-txt"><b class="dz-name"></b><small class="dz-size"></small></div>
+    <button type="button" class="ib dz-clear" title="Quitar archivo"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+</div>
+<button type="button" class="btn btn-primary btn-lg imp-check" disabled>
+  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Revisar archivo</button>
+<div class="imp-res"></div>
+<button type="button" class="btn btn-primary btn-lg imp-go" hidden>
+  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Confirmar importación</button>
+{% endmacro %}
+
+<section class="card imp" data-kind="catalogs">
+  <h2><span class="step">1</span> Depósitos, tipos y grupos</h2>
+  <p class="muted">Archivo con las secciones DEPOSITOS, TIPOS y GRUPOS (por ejemplo DEPOSITOS-TIPOS-GRUPOS.xlsx). Nunca se borra nada.</p>
+  {{ picker('Actualizar también las descripciones de los que ya existen') }}
+</section>
+
+<section class="card imp" data-kind="suppliers">
+  <h2><span class="step">2</span> Proveedores</h2>
+  <p class="muted">Archivo con una hoja llamada PROVEEDORES. Lee: Codigo, Razon Social, N Fantasia, CUIT/CUIL, E-Mail, Telefono, Contacto y Bloqueado. La hoja de clientes se ignora. Al actualizar, las celdas vacías del Excel no borran lo ya cargado.</p>
+  {{ picker('Actualizar también los proveedores que ya existen') }}
+</section>
+
+<section class="card imp" data-kind="products">
+  <h2><span class="step">3</span> Productos</h2>
+  <p class="muted">Archivo PRODUCTOS.xlsx. Lee: Codigo, Descripcion, Tipo, Unidad, Grupo, Depos.Estand, Punto Pedido, Prove.Estand, Seguimiento y Ativo. Los productos nuevos se crean con stock 0 en su depósito estándar. Al actualizar, nunca se tocan cantidades ni depósitos.</p>
+  {{ picker('Actualizar también los productos que ya existen') }}
+</section>
+
+<section class="card imp" data-kind="stock">
+  <h2><span class="step">4</span> Stock (saldos)</h2>
+  <p class="muted">Archivo con las columnas Producto, Deposito y Saldo Actual (por ejemplo STOCK.xlsx). Busca cada producto por código y le fija la cantidad en ese depósito. Los productos que no existen se omiten: importalos antes en el paso 3. Los cambios de cantidad quedan registrados como movimientos ya procesados.</p>
+  {{ picker('Actualizar también los saldos que ya tienen cantidad', 'Sin tildar, solo se cargan los saldos que todavía no tienen cantidad; los que ya tienen no se tocan.') }}
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/import.js') }}"></script>{% endblock %}

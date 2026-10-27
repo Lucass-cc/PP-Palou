@@ -11,6 +11,7 @@ class Stock(db.Model):
     quantity = db.Column(db.Float, nullable=False, default=0)
     lot = db.Column(db.String(60))  # último lote registrado
     last_control_date = db.Column(db.DateTime)
+    observation = db.Column(db.Text)  # observación del último control (conteo)
     product = db.relationship("Product")
     warehouse = db.relationship("Warehouse")
 
@@ -21,8 +22,12 @@ class Stock(db.Model):
     def to_dict(self):
         p = self.product
         return {"id": self.id, "product_id": p.id, "code": p.code, "description": p.description,
-                "type": p.type, "group": p.group, "standard_supplier": p.standard_supplier,
-                "unit": p.unit, "warehouse_id": self.warehouse_id, "warehouse": self.warehouse.name,
+                "type": p.type_ref.description, "type_code": p.type,
+                "group": p.group_ref.description, "group_code": p.group,
+                "standard_supplier": p.standard_supplier, "unit": p.unit,
+                "warehouse_id": self.warehouse_id, "warehouse": self.warehouse.name,
+                "warehouse_code": self.warehouse.code,
                 "quantity": self.quantity, "reorder_point": p.reorder_point, "lot": self.lot,
                 "last_control_date": self.last_control_date.isoformat() if self.last_control_date else None,
-                "observation": p.observation, "low_stock": self.low_stock, "active": p.active}
+                "observation": self.observation or p.observation,
+                "low_stock": self.low_stock, "active": p.active}

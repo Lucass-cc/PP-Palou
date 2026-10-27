@@ -32,6 +32,7 @@ def logout():
 
 
 @bp.get("/api/auth/me")
+
 @login_required
 def me():
     return jsonify(user=current_user().to_dict())

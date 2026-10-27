@@ -1,34 +1,63 @@
-{% extends "base.html" %}{% block title %}Stock{% endblock %}
+{% extends "base.html" %}{% block title %}Tablas de stock{% endblock %}
 {% block content %}
-<div class="head"><h1>Stock</h1><button id="newBtn" class="btn btn-primary">+ Nuevo producto</button></div>
-<div class="card filters">
-  <input id="fq" placeholder="Buscar código o descripción">
-  <select id="fgroup"><option value="">Todos los grupos</option></select>
-  <select id="fsup"><option value="">Todos los proveedores</option></select>
-  <select id="fwh"><option value="">Todos los depósitos</option></select>
-  <label class="chk"><input type="checkbox" id="flow"> Solo stock bajo</label>
+<script>const IS_ADMIN = {{ 'true' if user.role == 'ADMIN' else 'false' }};</script>
+<div class="head">
+  <div class="ph" style="margin:0"><h1>Tablas de stock</h1><p>Existencias actuales por producto y depósito.</p></div>
+  <button id="newBtn" class="btn btn-primary btn-lg">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nuevo producto</button>
 </div>
-<div class="card"><div class="tbl"><table><thead><tr><th>Código</th><th>Descripción</th><th>Tipo</th><th>Depósito</th><th>Cantidad</th><th>Reposición</th><th>Lote</th><th>Últ. control</th><th>Observación</th><th></th></tr></thead><tbody id="body"></tbody></table></div></div>
 
+<div class="tcard">
+  <div class="tfilters">
+    <label class="tsearch">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="fq" placeholder="Buscar por código o descripción…" autocomplete="off"></label>
+    <select id="fgroup"><option value="">Todos los grupos</option></select>
+    <select id="fsup"><option value="">Proveedor estándar</option></select>
+    <select id="fwh"><option value="">Todos los depósitos</option></select>
+    <label class="tchk"><input type="checkbox" id="flow"> Bajo punto de pedido</label>
+  </div>
+  <div class="tbl"><table class="st">
+    <thead><tr><th>CÓDIGO</th><th>DESCRIPCIÓN</th><th>TIPO</th><th>DEPÓSITO</th><th>CANTIDAD</th><th>PUNTO DE PEDIDO</th><th>LOTE</th><th>ÚLTIMO CONTROL</th><th>OBSERVACIÓN</th><th></th></tr></thead>
+    <tbody id="body"></tbody>
+  </table></div>
+</div>
+
+<!-- Alta / edición de producto -->
 <dialog id="dlg"><form id="pForm" method="dialog">
-  <h2>Nuevo producto</h2>
+  <h2 id="pTitle">Nuevo producto</h2>
   <div class="cols">
     <label>Código*<input name="code" required maxlength="40"></label>
     <label>Unidad*<input name="unit" required maxlength="20" list="dUnits"></label>
     <label class="span">Descripción*<input name="description" required maxlength="255"></label>
-    <label>Depósito*<select name="warehouse_id" id="pWh" required></select></label>
-    <label>Tipo*<input name="type" required list="dTypes"></label>
-    <label>Grupo*<input name="group" required list="dGroups"></label>
-    <label>Cantidad inicial<input name="quantity" type="number" step="any" min="0" value="0"></label>
+    <label class="only-new">Depósito*<select name="warehouse_id" id="pWh" required></select></label>
+    <label>Tipo*<select name="type" id="pType" required></select></label>
+    <label>Grupo*<select name="group" id="pGroup" required></select></label>
+    <label class="only-new">Cantidad inicial<input name="quantity" type="number" step="any" min="0" value="0"></label>
     <label>Punto de reposición*<input name="reorder_point" type="number" step="any" min="0" required></label>
-    <label>Lote<input name="lot" maxlength="60"></label>
-    <label>Proveedor estándar<input name="standard_supplier" list="dSups"></label>
-    <label class="chk span"><input type="checkbox" name="lot_required"> Requiere lote en cada movimiento</label>
+    <label class="only-new">Lote<input name="lot" maxlength="60"></label>
+    <label>Proveedor estándar<select name="standard_supplier" id="pSup"></select></label>
+    <div class="span opts">
+      <label class="chk"><input type="checkbox" name="lot_required"> Exigir lote en cada movimiento</label>
+      <label class="chk only-edit"><input type="checkbox" name="active"> Producto activo (desmarcar para archivarlo)</label>
+    </div>
     <label class="span">Observación<textarea name="observation" rows="2"></textarea></label>
   </div>
-  <datalist id="dUnits"></datalist><datalist id="dTypes"></datalist><datalist id="dGroups"></datalist><datalist id="dSups"></datalist>
+  <datalist id="dUnits"></datalist>
   <div id="pMsg" class="msg"></div>
   <div class="actions"><button type="button" class="btn btn-ghost" id="cancel">Cancelar</button><button class="btn btn-primary">Guardar</button></div>
+</form></dialog>
+
+<!-- Conteo de stock -->
+<dialog id="cDlg"><form id="cForm" method="dialog">
+  <h2>Control de stock</h2>
+  <p class="muted" id="cInfo"></p>
+  <div class="cbox"><small>EN SISTEMA</small><b id="cSys">–</b></div>
+  <label>Cantidad contada*<input name="counted" type="number" step="any" min="0" required></label>
+  <div id="cDiff" class="cdiff"></div>
+  <label>Observación (opcional)<textarea name="observation" rows="2"></textarea></label>
+  <div id="cMsg" class="msg"></div>
+  <div class="actions"><button type="button" class="btn btn-ghost" id="cCancel">Cancelar</button><button class="btn btn-primary">Confirmar conteo</button></div>
 </form></dialog>
 {% endblock %}
 {% block scripts %}<script src="{{ url_for('static', filename='js/stock.js') }}"></script>{% endblock %}

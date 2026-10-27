@@ -1,14 +1,27 @@
 {% extends "base.html" %}{% block title %}Dashboard{% endblock %}
-{% block content %}
-<h1>Dashboard</h1>
-<section class="kpis">
-  <div class="card kpi"><small>Productos activos</small><b id="kActive">–</b></div>
-  <div class="card kpi alert"><small>Bajo punto de reposición</small><b id="kLow">–</b></div>
-  <div class="card kpi pending"><small>Pendientes TOTVS</small><b id="kPending">–</b></div>
+{% block content %}{% from "_icons.html" import ico %}
+<header class="ph"><small class="eyebrow">HOLA, {{ user.name.split()[0]|upper }}</small><h1>Dashboard de stock</h1><p>Resumen operativo del inventario de PALOU.</p></header>
+
+<section class="quick">
+  <a class="qcard" href="/movement"><span class="ibox">{{ ico('updown') }}</span><div><b>Alta / Baja</b><small>Registrar un movimiento de stock</small></div>{{ ico('chev', 18) }}</a>
+  <a class="qcard" href="/stock"><span class="ibox">{{ ico('layers') }}</span><div><b>Tablas de stock</b><small>Consultar existencias y controles</small></div>{{ ico('chev', 18) }}</a>
+  <a class="qcard" href="/sync"><span class="ibox">{{ ico('sync') }}</span><div><b>Sincronización TOTVS</b><small>Preparar movimientos pendientes</small></div>{{ ico('chev', 18) }}</a>
+  {% if user.role == 'ADMIN' %}<a class="qcard" href="/users"><span class="ibox">{{ ico('userplus') }}</span><div><b>Usuarios</b><small>Administrar accesos internos</small></div>{{ ico('chev', 18) }}</a>{% endif %}
 </section>
-<section class="grid2">
-  <div class="card"><h2>Stock bajo</h2><div class="tbl"><table><thead><tr><th>Código</th><th>Descripción</th><th>Depósito</th><th>Cant.</th><th>Reposición</th></tr></thead><tbody id="lowBody"></tbody></table></div></div>
-  <div class="card"><h2>Movimientos recientes</h2><div class="tbl"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Cant.</th><th>Sync</th></tr></thead><tbody id="recBody"></tbody></table></div></div>
+
+<section class="kpis3">
+  <div class="kcard"><span class="ibox lg">{{ ico('box', 24) }}</span><div class="kmain"><small>PRODUCTOS ACTIVOS</small><b id="kActive">–</b></div><em id="kActiveN"></em></div>
+  <div class="kcard"><span class="ibox lg red">{{ ico('alert', 24) }}</span><div class="kmain"><small>BAJO PUNTO DE PEDIDO</small><b class="red" id="kLow">–</b></div><em>Requieren reposición</em></div>
+  <div class="kcard"><span class="ibox lg yellow">{{ ico('clock', 24) }}</span><div class="kmain"><small>PENDIENTES TOTVS</small><b class="yellow" id="kPending">–</b></div><em>En cola para preparar</em></div>
+</section>
+
+<section class="panel">
+  <div class="panel-h">
+    <div><h2>Reposición · bajo punto de pedido <span class="pill" id="lowPill">0 productos</span></h2><p>Productos cuya cantidad disponible requiere atención.</p></div>
+    <label class="srch">{{ ico('search', 18) }}<input id="lowQ" placeholder="Buscar producto…" autocomplete="off"></label>
+  </div>
+  <div id="lowList"><div class="loading">Cargando…</div></div>
+  <a class="panel-f" href="/stock?low=1">Ver tabla completa de stock {{ ico('arrow', 16) }}</a>
 </section>
 {% endblock %}
 {% block scripts %}<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>{% endblock %}

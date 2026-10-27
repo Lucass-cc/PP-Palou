@@ -13,4 +13,5 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     SESSION_COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "0") == "1"
+    MAX_CONTENT_LENGTH = 8 * 1024 * 1024  # máximo 8 MB por archivo subido
     PERMANENT_SESSION_LIFETIME = timedelta(hours=8)

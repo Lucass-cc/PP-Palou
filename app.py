@@ -1,5 +1,5 @@
 import hmac, os, secrets
-from flask import Flask, render_template, request, session, redirect, g
+from flask import Flask, app, render_template, request, session, redirect, g
 from config import Config
 from extensions import db
 from utils import err, login_required, admin_required, current_user
@@ -11,11 +11,11 @@ def create_app():
     os.makedirs(os.path.join(app.root_path, "database"), exist_ok=True)
     db.init_app(app)
 
-    from routes import auth, dashboard, products, stock, movements, users, sync
-    for m in (auth, dashboard, products, stock, movements, users, sync):
+    from routes import auth, dashboard, products, stock, movements, users, sync, imports, tables
+    for m in (auth, dashboard, products, stock, movements, users, sync, imports, tables):
         app.register_blueprint(m.bp)
 
-    @app.context_processor
+    @app.context_processor 
     def inject():
         session.setdefault("csrf", secrets.token_hex(16))
         return {"csrf_token": lambda: session["csrf"]}
@@ -60,13 +60,25 @@ def create_app():
     @login_required
     def sync_page(): return page("sync.html", "sync")
 
+    @app.get("/tablas")
+    @login_required
+    def tables_page(): return page("tables.html", "tables")
+
     @app.get("/users")
     @admin_required
     def users_page(): return page("users.html", "users")
+    
+    @app.get("/import")
+    @login_required
+    def import_page(): return page("import.html", "import")
 
     @app.errorhandler(404)
     def nf(e):
-        return err("No encontrado", 404) if request.path.startswith("/api/") else redirect("/")
+        return err("No encontrado", 404) if request.path.startswith("/api/") else redirect("/") 
+    
+    @app.errorhandler(413)
+    def too_big(e):
+        return err("Archivo demasiado grande (máximo 8 MB)", 413)
 
     with app.app_context():
         db.create_all()

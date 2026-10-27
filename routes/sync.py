@@ -6,7 +6,7 @@ from models import StockMovement
 from utils import err, login_required
 
 bp = Blueprint("sync", __name__)
-HEADER = ["id_movimiento", "fecha", "tipo", "codigo_producto", "unidad", "cantidad", "deposito", "lote", "usuario", "observacion"]
+HEADER = ["id_movimiento", "fecha", "tipo", "codigo_producto", "unidad", "cantidad", "codigo_deposito", "deposito", "lote", "usuario", "observacion"]
 
 
 def _safe(v):  # evita inyección de fórmulas al abrir el CSV en planillas
@@ -38,8 +38,13 @@ def sync_csv():
     w.writerow(HEADER)
     for m in rows:
         w.writerow([m.id, m.created_at.strftime("%Y-%m-%d %H:%M:%S"), m.movement_type, _safe(m.product.code),
-                    _safe(m.product.unit), m.quantity, _safe(m.warehouse.name), _safe(m.lot), _safe(m.user.name),
+                    _safe(m.product.unit), m.quantity, _safe(m.warehouse.code), _safe(m.warehouse.name), _safe(m.lot), _safe(m.user.name),
                     _safe(m.observation)])
     name = f"palou_movimientos_{datetime.utcnow():%Y%m%d_%H%M%S}.csv"
     return Response("\ufeff" + buf.getvalue(), mimetype="text/csv",
                     headers={"Content-Disposition": f"attachment; filename={name}"})
+
+@bp.get("/api/sync/count")
+@login_required
+def sync_count():
+    return jsonify(pending=StockMovement.query.filter_by(sync_status="PENDING").count())

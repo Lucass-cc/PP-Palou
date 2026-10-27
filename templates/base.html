@@ -1,22 +1,39 @@
+{% from "_icons.html" import ico %}
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <title>PALOU — {% block title %}{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head><body>
-<header class="topbar">
-  <button id="menuBtn" class="menu-btn" aria-label="Menú">☰</button>
-  <div class="brand">PALOU <span>CONTROL DE STOCK</span></div>
-  <div class="who"><span>{{ user.name }} · {{ user.role }}</span><button id="logoutBtn" class="btn btn-light">Salir</button></div>
-</header>
-<div class="layout">
-  <nav class="sidebar" id="sidebar">
-    {% for key, href, label in [('dashboard','/dashboard','Dashboard'),('movement','/movement','Alta / Baja'),('stock','/stock','Stock'),('sync','/sync','Sincronización')] %}
-    <a href="{{ href }}" class="{{ 'active' if page == key }}">{{ label }}</a>{% endfor %}
-    {% if user.role == 'ADMIN' %}<a href="/users" class="{{ 'active' if page == 'users' }}">Usuarios</a>{% endif %}
-  </nav>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/shell.css') }}">
+<link rel="icon" type="image/png" href="img/Logo.png">
+</head><body class="app">
+<aside class="side" id="sidebar">
+  <div class="side-logo"><span class="mark">P</span><div><b>PALOU</b><small>CONTROL DE STOCK</small></div></div>
+  <nav>
+    <small class="side-label">GESTIÓN</small>
+    {% for key, href, label, icon in [('dashboard','/dashboard','Dashboard','grid'),('movement','/movement','Alta / Baja','updown'),('stock','/stock','Stock','layers'),('sync','/sync','Sincronización','sync'),('tables','/tablas','Tablas','table')] %}
+    <a href="{{ href }}" class="{{ 'active' if page == key }}">{{ ico(icon) }}<span>{{ label }}</span>  
+      {% if key == 'sync' %}<span class="nbadge" id="navBadge" {% if not pending %}hidden{% endif %}>{{ pending }}</span>{% endif %}</a>{% endfor %}
+          {% if user.role == 'ADMIN' %}<a href="/users" class="{{ 'active' if page == 'users' }}">{{ ico('userplus') }}<span>Usuarios</span></a>{% endif %}
+    <a href="/import" class="{{ 'active' if page == 'import' }}">{{ ico('upload') }}<span>Importar datos</span></a>
+  <div class="side-foot"><i class="dot ok"></i><div><b>Sistema operativo</b><small id="upd">Actualizado ahora</small></div></div>
+</aside>
+<div class="content">
+  <header class="top">
+    <button id="menuBtn" class="menu-btn" aria-label="Menú">☰</button>
+    <span class="pendwrap" id="pendWrap" {% if not pending %}hidden{% endif %}>
+      <a href="/sync" class="pend"><i class="dot warn"></i><b id="pendTxt">{{ pending }} pendiente{{ '' if pending == 1 else 's' }} TOTVS</b></a>
+      <span class="vsep"></span>
+    </span>
+    <div class="me"><span class="avatar">{{ (user.name.split()[0][0] ~ (user.name.split()[1][0] if user.name.split()|length > 1 else ''))|upper }}</span>
+      <div><b>{{ user.name }}</b><small>{{ 'Administradora' if user.role == 'ADMIN' else 'Operador activo' }}</small></div></div>
+    <button id="logoutBtn" class="logout">{{ ico('logout', 18) }}<span>Cerrar sesión</span></button>
+  </header>
   <main class="main">{% block content %}{% endblock %}</main>
+  <footer class="pfoot">Complementario a TOTVS. Los movimientos quedan en cola para carga manual.</footer>
 </div>
 <div id="toasts"></div>
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>

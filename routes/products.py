@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify, g
 from sqlalchemy import or_
 from extensions import db
-from models import Product, Warehouse, Stock, StockMovement
-from utils import err, login_required, parse_qty, clean
+from models import Product, ProductType, ProductGroup, Warehouse, Stock, StockMovement, StockControl, Supplier
+from utils import err, login_required, admin_required, parse_qty, clean
 
 bp = Blueprint("products", __name__)
 
@@ -24,9 +24,11 @@ def list_products():
 @login_required
 def meta():
     col = lambda c: [r[0] for r in db.session.query(c).filter(c.isnot(None)).distinct().order_by(c)]
-    return jsonify(groups=col(Product.group), suppliers=col(Product.standard_supplier),
-                   types=col(Product.type), units=col(Product.unit),
-                   warehouses=[w.to_dict() for w in Warehouse.query.order_by(Warehouse.name)])
+    return jsonify(
+        groups=[g_.to_dict() for g_ in ProductGroup.query.order_by(ProductGroup.code)],
+        types=[t.to_dict() for t in ProductType.query.order_by(ProductType.code)],
+        warehouses=[w.to_dict() for w in Warehouse.query.order_by(Warehouse.code)],
+        suppliers=[s.to_dict() for s in Supplier.query.order_by(Supplier.code)], units=col(Product.unit))
 
 
 @bp.get("/api/products/<int:pid>")
@@ -36,23 +38,37 @@ def get_product(pid):
     return jsonify(product=p.to_dict()) if p else err("Producto no encontrado", 404)
 
 
+def _catalog(model, value):
+    """Devuelve el código si existe en el catálogo oficial; si no, None."""
+    v = (clean(value, 4) or "").upper()
+    return v if v and db.session.get(model, v) else None
+
+
 def _fields(d, partial=False):
     """Valida y normaliza los campos del producto. Devuelve (data, error)."""
     data = {}
-    for k, label, ln in (("code", "Código", 40), ("unit", "Unidad", 20), ("description", "Descripción", 255),
-                         ("type", "Tipo", 60), ("group", "Grupo", 60)):
+    for k, label, ln in (("code", "Código", 40), ("unit", "Unidad", 20), ("description", "Descripción", 255)):
         if k in d or not partial:
             v = clean(d.get(k), ln)
             if not v:
                 return None, f"{label} es obligatorio"
             data[k] = v.upper() if k == "code" else v
+    for k, model, label in (("type", ProductType, "Tipo"), ("group", ProductGroup, "Grupo")):
+        if k in d or not partial:
+            v = _catalog(model, d.get(k))
+            if not v:
+                return None, f"{label} inválido: elegí uno de la lista"
+            data[k] = v
     if "reorder_point" in d or not partial:
         rp = parse_qty(d.get("reorder_point"), allow_zero=True)
         if rp is None:
             return None, "Punto de reposición inválido (≥ 0)"
         data["reorder_point"] = rp
     if "standard_supplier" in d:
-        data["standard_supplier"] = clean(d.get("standard_supplier"), 120)
+        sup = clean(d.get("standard_supplier"), 10)
+        if sup and not db.session.get(Supplier, sup):
+            return None, "Proveedor inexistente: elegí uno de la lista"
+        data["standard_supplier"] = sup
     if "observation" in d:
         data["observation"] = clean(d.get("observation"), 2000)
     if "lot_required" in d:
@@ -110,3 +126,26 @@ def update_product(pid):
         setattr(p, k, v)
     db.session.commit()
     return jsonify(product=p.to_dict())
+
+
+@bp.delete("/api/products/<int:pid>")
+@admin_required
+def delete_product(pid):
+    """Elimina el producto. Si ya tiene movimientos o controles, se archiva (no se pierde el historial)."""
+    p = db.session.get(Product, pid)
+    if not p:
+        return err("Producto no encontrado", 404)
+    used = (StockMovement.query.filter_by(product_id=pid).first()
+            or StockControl.query.filter_by(product_id=pid).first())
+    try:
+        if used:
+            p.active = False
+            db.session.commit()
+            return jsonify(archived=True)
+        Stock.query.filter_by(product_id=pid).delete()
+        db.session.delete(p)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return err("No se pudo eliminar el producto", 500)
+    return jsonify(deleted=True)

@@ -4,9 +4,15 @@
 <section class="grid2">
   <div class="card">
     <div class="seg"><button type="button" class="on" data-t="IN">Alta (entrada)</button><button type="button" data-t="OUT">Baja (salida)</button></div>
-    <form id="mvForm">
-      <label>Buscar producto<input id="pq" placeholder="Código o descripción" autocomplete="off"></label>
-      <label>Producto<select name="product_id" required></select></label>
+    <form id="mvForm" autocomplete="off">
+      <div class="fld">
+        <label for="pq">Producto</label>
+        <div class="combo">
+          <input id="pq" type="text" placeholder="Buscá por código o descripción…" role="combobox" aria-expanded="false" aria-controls="pList" autocomplete="off">
+          <input type="hidden" name="product_id">
+          <ul id="pList" class="combo-list" role="listbox" hidden></ul>
+        </div>
+      </div>
       <label>Depósito<select name="warehouse_id" required></select></label>
       <div id="avail" class="muted"></div>
       <label>Cantidad<input name="quantity" type="number" step="any" min="0" required></label>

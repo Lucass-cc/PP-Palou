@@ -78,14 +78,38 @@ def movement():
 @bp.post("/api/stock/control")
 @login_required
 def control():
+    """Conteo físico: la cantidad del sistema pasa a ser la contada.
+    La diferencia queda registrada como un movimiento de ajuste (IN/OUT) pendiente de sincronizar."""
     d = request.get_json(silent=True) or {}
-    st = Stock.query.filter_by(product_id=d.get("product_id") if isinstance(d.get("product_id"), int) else 0,
-                               warehouse_id=d.get("warehouse_id") if isinstance(d.get("warehouse_id"), int) else 0).first()
+    pid = d.get("product_id") if isinstance(d.get("product_id"), int) else 0
+    wid = d.get("warehouse_id") if isinstance(d.get("warehouse_id"), int) else 0
+    st = Stock.query.filter_by(product_id=pid, warehouse_id=wid).first()
     if not st:
         return err("No existe stock para ese producto y depósito", 404)
-    now = datetime.utcnow()
-    db.session.add(StockControl(product_id=st.product_id, warehouse_id=st.warehouse_id, user_id=g.user.id,
-                                control_date=now, observation=clean(d.get("observation"), 2000)))
-    st.last_control_date = now
-    db.session.commit()
-    return jsonify(stock=st.to_dict()), 201
+    counted = parse_qty(d.get("counted_quantity"), allow_zero=True)
+    if counted is None:
+        return err("Ingresá la cantidad contada (0 o mayor)")
+    obs = clean(d.get("observation"), 2000)
+    try:
+        prev = st.quantity
+        diff = round(counted - prev, 3)
+        now = datetime.utcnow()
+        adj = None
+        if diff != 0:
+            note = f"Ajuste por control de stock: sistema {prev:g} → contado {counted:g}"
+            adj = StockMovement(product_id=pid, warehouse_id=wid, user_id=g.user.id, quantity=abs(diff),
+                                movement_type="IN" if diff > 0 else "OUT", lot=st.lot,
+                                observation=note + (f". {obs}" if obs else ""), sync_status="PENDING")
+            db.session.add(adj)
+        st.quantity = counted
+        st.last_control_date = now
+        if obs:
+            st.observation = obs  # la columna "Observación" de Stock muestra la del último conteo
+        db.session.add(StockControl(product_id=pid, warehouse_id=wid, user_id=g.user.id, control_date=now,
+                                    system_quantity=prev, counted_quantity=counted, observation=obs))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return err("No se pudo registrar el control", 500)
+    return jsonify(stock=st.to_dict(), previous=prev, difference=diff,
+                   adjustment=adj.to_dict() if adj else None), 201

@@ -1,7 +1,33 @@
 {% extends "base.html" %}{% block title %}Sincronización{% endblock %}
-{% block content %}
-<div class="head"><h1>Sincronización TOTVS</h1><button id="genBtn" class="btn btn-primary" disabled>Generar CSV</button></div>
-<p class="muted">Seleccioná los movimientos, descargá el CSV y, una vez cargado en TOTVS, confirmá para marcarlos como PROCESADOS. El historial no se elimina.</p>
-<div class="card"><div class="tbl"><table><thead><tr><th><input type="checkbox" id="all"></th><th>Fecha</th><th>Tipo</th><th>Código</th><th>Cant.</th><th>Depósito</th><th>Lote</th><th>Usuario</th><th>Estado</th></tr></thead><tbody id="body"></tbody></table></div></div>
+{% block content %}{% from "_icons.html" import ico %}
+<div class="head"><div class="ph" style="margin:0"><h1>Sincronización TOTVS</h1><p>Movimientos de stock pendientes de carga en TOTVS.</p></div></div>
+
+<div class="sbanner">
+  <span class="sb-ico">{{ ico('sync', 22) }}</span>
+  <div><b id="sbTitle">–</b><small>Seleccioná los registros que querés preparar.</small></div>
+  <span class="sb-pill">Carga manual</span>
+</div>
+
+<div class="tcard">
+  <div class="sbar">
+    <span id="selCount">0 seleccionados</span>
+    <div class="sbtns">
+      <button id="csvBtn" class="btn btn-ghost btn-lg" disabled>
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Generar CSV</button>
+      <button id="prepBtn" class="btn btn-primary btn-lg" disabled>
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Preparar para TOTVS</button>
+    </div>
+  </div>
+  <div class="tbl"><table class="st sy">
+    <thead><tr><th><input type="checkbox" id="all"></th><th>PRODUCTO</th><th>CANTIDAD</th><th>TIPO</th><th>DEPÓSITO</th><th>USUARIO</th><th>FECHA</th><th>ESTADO</th><th>ACCIÓN</th></tr></thead>
+    <tbody id="body"></tbody>
+  </table></div>
+</div>
+
+<dialog id="okDlg">
+  <h2>Confirmar carga en TOTVS</h2>
+  <p id="okMsg" class="muted"></p>
+  <div class="actions"><button type="button" class="btn btn-ghost" id="okNo">Cancelar</button><button type="button" class="btn btn-primary" id="okYes">Sí, marcar como cargados</button></div>
+</dialog>
 {% endblock %}
 {% block scripts %}<script src="{{ url_for('static', filename='js/sync.js') }}"></script>{% endblock %}
